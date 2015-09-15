@@ -84,7 +84,7 @@ public class MainWindow {
 		panel.setLayout(null);
 		
 		JTextField urlField = new JTextField();
-		urlField.setText("http://maxrozen.com/wapt/wp-login.php");
+		urlField.setText("http://");
 		urlField.setBounds(119, 6, 465, 28);
 		urlField.setColumns(10);
 		panel.add(urlField);
@@ -181,13 +181,13 @@ public class MainWindow {
 		panel.add(btnListParameters);
 		
 		txtUsername = new JTextField();
-		txtUsername.setText("admin");
+		txtUsername.setText("");
 		txtUsername.setBounds(90, 186, 134, 28);
 		panel.add(txtUsername);
 		txtUsername.setColumns(10);
 		
 		txtPassword = new JTextField();
-		txtPassword.setText("webapplicationperformancetesting");
+		txtPassword.setText("");
 		txtPassword.setBounds(300, 186, 134, 28);
 		panel.add(txtPassword);
 		txtPassword.setColumns(10);
