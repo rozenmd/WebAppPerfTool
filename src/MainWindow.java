@@ -18,6 +18,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
+import java.util.prefs.Preferences;
 
 import javax.swing.JList;
 import javax.swing.ScrollPaneConstants;
@@ -30,6 +31,8 @@ import java.awt.event.ActionEvent;
 import javax.swing.JCheckBox;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 
 
 public class MainWindow {
@@ -46,6 +49,18 @@ public class MainWindow {
 	private String usernameParam;
 	private String passwordParam;
 	private String loginParam;
+	private Preferences prefs = Preferences.userNodeForPackage(this.getClass());
+	private boolean RELOAD_OLD_PREFS = false;
+	final String BASE_URL = "base_url";
+	final String USERNAME = "username";
+	final String PASSWORD = "password";
+	final String USER_PARAM= "user_param";
+	final String PASS_PARAM= "pass_param";
+	final String LOGIN_PARAM= "login_param";
+	final String WAIT_TIME= "wait_time";
+	final String NUM_TRIES= "num_tries";
+	final String NUM_THREADS= "num_threads";
+	
 	/**
 	 * Launch the application.
 	 */
@@ -56,10 +71,12 @@ public class MainWindow {
 				try {
 					MainWindow window = new MainWindow();
 					window.frmWebAppPerformance.setVisible(true);
+					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
+		
 		});
 	}
 
@@ -213,7 +230,7 @@ public class MainWindow {
 				}
 			}
 		});
-		btnAddPage.setBounds(454, 228, 71, 29);
+		btnAddPage.setBounds(454, 228, 93, 29);
 		panel.add(btnAddPage);
 		
 		JLabel lblPageToTest = new JLabel("Page to test");
@@ -227,7 +244,7 @@ public class MainWindow {
 				
 			}
 		});
-		btnRemove.setBounds(453, 279, 117, 29);
+		btnRemove.setBounds(454, 249, 93, 29);
 		panel.add(btnRemove);
 		
 		JScrollPane scrollPane_1 = new JScrollPane();
@@ -236,8 +253,8 @@ public class MainWindow {
 		panel.add(scrollPane_1);
 		
 		// Append a row 
-		model.addRow(new Object[]{"wp-login.php", true, false});
-		model.addRow(new Object[]{"wp-login.php", false, true});
+		//model.addRow(new Object[]{"wp-login.php", true, false});
+		//model.addRow(new Object[]{"wp-login.php", false, true});
 		pageTable = new JTable();
 		scrollPane_1.setViewportView(pageTable);
 		pageTable.setModel(model);
@@ -309,21 +326,43 @@ public class MainWindow {
 		menuBar.add(menu);
 
 		
-		JMenuItem exitItem, importSettings, exportSettings;
+		JMenuItem exitItem, saveSettings, importSettings, exportSettings;
 
+		saveSettings = new JMenuItem("Save Settings");
+		saveSettings.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				//save all settings to prefs
+				if(RELOAD_OLD_PREFS){
+					if(urlField.getText() != null){prefs.put(BASE_URL,urlField.getText());}
+					if(txtUsername.getText() != null){prefs.put(USERNAME,txtUsername.getText());}
+					if(txtPassword.getText() != null){prefs.put(PASSWORD,txtPassword.getText());}
+					if(usernameParam != null){prefs.put(USER_PARAM,usernameParam);}
+					if(passwordParam != null){prefs.put(PASS_PARAM,passwordParam);}
+					if(loginParam != null){prefs.put(LOGIN_PARAM,loginParam);}			
+					if(waitTime.getText() != null){prefs.put(WAIT_TIME,waitTime.getText());}					
+					if(numTries.getText() != null){prefs.put(NUM_TRIES,numTries.getText());}					
+					if(numThreads.getText() != null){prefs.put(NUM_THREADS,numThreads.getText());}					
+					//URGH.
+					//prefs.put(WORKLOAD,Helper.getTableData(pageTable));
+					
 
-		importSettings = new JMenuItem("Exit");
+				}
+			}
+		});
+		menu.add(saveSettings);
+		
+		importSettings = new JMenuItem("Import Settings");
 		importSettings.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				System.exit(0);
+				
 			}
 		});
 		menu.add(importSettings);
 
-		exportSettings = new JMenuItem("Exit");
+		exportSettings = new JMenuItem("Export Settings");
 		exportSettings.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				System.exit(0);
+				
 			}
 		});
 		menu.add(exportSettings);
@@ -346,9 +385,30 @@ public class MainWindow {
 		scrollPane.setViewportView(list);
 		
 				list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
-
-	
+				
+				JCheckBox chckbxRememberSettings = new JCheckBox("Remember Settings?");
+				chckbxRememberSettings.addChangeListener(new ChangeListener() {
+					public void stateChanged(ChangeEvent e) {
+						RELOAD_OLD_PREFS = chckbxRememberSettings.isSelected();
+					}
+				});
+				chckbxRememberSettings.setSelected(true);
+				chckbxRememberSettings.setBounds(318, 199, 163, 41);
+				panel.add(chckbxRememberSettings);
+				if(RELOAD_OLD_PREFS){
+					
+					urlField.setText(prefs.get(BASE_URL,""));
+					txtUsername.setText(prefs.get(USERNAME,""));
+					txtPassword.setText(prefs.get(PASSWORD,""));
+					usernameParam = prefs.get(USER_PARAM,"");
+					passwordParam = prefs.get(PASS_PARAM,"");
+					loginParam = prefs.get(LOGIN_PARAM,"");
+					waitTime.setText(prefs.get(WAIT_TIME, "100"));
+					numTries.setText(prefs.get(NUM_TRIES, "2"));
+					numThreads.setText(prefs.get(NUM_THREADS, "2"));	
+				}
+				
+				
 	}
 	
 	public JTable getJTable(){
