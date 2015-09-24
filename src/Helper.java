@@ -1,5 +1,11 @@
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -10,7 +16,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-
+import org.apache.commons.lang3.StringUtils;
 
 
 public class Helper {
@@ -38,7 +44,7 @@ public class Helper {
 				return params;
 			}
 	  }
-	  /* From:
+	  	/* From:
 		 * http://stackoverflow.com/questions/4765469/how-to-retrieve-jtable-data-as-an-array
 		 */
 		public static Object[][] getTableData (JTable table) {
@@ -50,5 +56,46 @@ public class Helper {
 		            tableData[i][j] = dtm.getValueAt(i,j);
 		    return tableData;
 		}
-
+		/* 
+		 * 
+		 */
+		public static void populateCsvArray(String url, long responseTime, int hitNo, int threadNo){
+			DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
+			Date date = new Date();
+			String dateVal = dateFormat.format(date);
+			Object[] tempArray = {dateVal, url, responseTime};
+			String temp = StringUtils.join(tempArray, ',');
+			ThreadService.csvArray[threadNo][hitNo] = temp;
+			//System.out.println(temp);
+			//ThreadService.csvList.add(temp);
+        	//ThreadService.csvArray[j+i+threadNo] = tempArray;
+        	//System.out.println("RowCount: " + ThreadService.csvList.size());
+		}
+		/*
+		 * inspired by http://www.mkyong.com/java/how-to-append-content-to-file-in-java/
+		 */
+		public static void printGrid(int x, int y)
+		{
+			try{
+				File file =new File("javaio-appendfile.csv");
+	    		if(!file.exists()){
+	    			file.createNewFile();
+	    		}
+	    		FileWriter fileWritter = new FileWriter(file.getName(),true);
+		        BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
+		        
+				for(int i = 0; i < y; i++){
+					for(int j = 0; j < x; j++){
+						
+						String toFile = ThreadService.csvArray[i][j].toString() + "\n";
+						bufferWritter.write(toFile);
+						//System.out.println(toFile);
+					}
+				}
+				bufferWritter.close();
+			}catch(IOException e){
+	    		e.printStackTrace();
+	    	}
+    		
+		}
 }
