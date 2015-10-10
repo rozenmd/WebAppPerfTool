@@ -16,14 +16,24 @@ import javax.swing.JLabel;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Vector;
 import java.util.prefs.Preferences;
 
 import javax.swing.JList;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -33,6 +43,8 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+
+import org.apache.commons.lang3.StringUtils;
 
 
 public class MainWindow {
@@ -48,19 +60,19 @@ public class MainWindow {
 	public JTable pageTable;
 	private String usernameParam;
 	private String passwordParam;
-	private String loginParam;
+	
 	private Preferences prefs = Preferences.userNodeForPackage(this.getClass());
 	private boolean RELOAD_OLD_PREFS = false;
 	final String BASE_URL = "base_url";
 	final String USERNAME = "username";
 	final String PASSWORD = "password";
-	final String USER_PARAM= "user_param";
-	final String PASS_PARAM= "pass_param";
-	final String LOGIN_PARAM= "login_param";
-	final String WAIT_TIME= "wait_time";
-	final String NUM_TRIES= "num_tries";
-	final String NUM_THREADS= "num_threads";
-	
+	final String USER_PARAM = "user_param";
+	final String PASS_PARAM = "pass_param";
+	final String LOGIN_PARAM = "login_param";
+	final String WAIT_TIME = "wait_time";
+	final String NUM_TRIES = "num_tries";
+	final String NUM_THREADS = "num_threads";
+	final String REMEMBER = "remember_old_settings";
 	/**
 	 * Launch the application.
 	 */
@@ -93,7 +105,7 @@ public class MainWindow {
 	private void initialize() {
 		frmWebAppPerformance = new JFrame();
 		frmWebAppPerformance.setTitle("Web App Performance Test Tool");
-		frmWebAppPerformance.setBounds(100, 100, 607, 395);
+		frmWebAppPerformance.setBounds(100, 100, 606, 395);
 		frmWebAppPerformance.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		JCheckBox chckbxLoginPage = new JCheckBox("Login Form?");
 		JCheckBox chckbxPostLoginUri = new JCheckBox("POST Login URI?");
@@ -120,12 +132,8 @@ public class MainWindow {
 				String username = txtUsername.getText();
 				String password = txtPassword.getText();
 				work = Helper.getTableData(pageTable);
-				try {
-					ThreadService.main(null,url, tries, wait, threads, username, password, usernameParam, passwordParam, loginParam);
-				} catch (Exception e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+				ThreadService runThread = new ThreadService(url, tries, wait, threads, username, password, usernameParam, passwordParam);
+				
 			}
 		});
 		btnRun.setBounds(454, 333, 117, 29);
@@ -137,7 +145,7 @@ public class MainWindow {
 		lblUrl.setBounds(16, 40, 71, 16);
 		panel.add(lblUrl);
 		
-		JLabel lblWaittime = new JLabel("Wait Time (ms)");
+		JLabel lblWaittime = new JLabel("Wait time (ms)");
 		lblWaittime.setBounds(16, 68, 97, 16);
 		panel.add(lblWaittime);
 		
@@ -153,7 +161,7 @@ public class MainWindow {
 		numTries.setBounds(301, 62, 86, 28);
 		panel.add(numTries);
 		
-		JLabel lblNumtries = new JLabel("numTries");
+		JLabel lblNumtries = new JLabel("# of tries");
 		lblNumtries.setBounds(217, 68, 71, 16);
 		panel.add(lblNumtries);
 		
@@ -163,7 +171,7 @@ public class MainWindow {
 		numThreads.setBounds(511, 62, 71, 28);
 		panel.add(numThreads);
 		
-		JLabel lblNumthreads = new JLabel("numThreads");
+		JLabel lblNumthreads = new JLabel("# of threads");
 		lblNumthreads.setBounds(413, 68, 86, 16);
 		panel.add(lblNumthreads);
 		JButton btnListParameters = new JButton("List Parameters");
@@ -186,7 +194,7 @@ public class MainWindow {
 				}
 			}
 		});
-		btnListParameters.setBounds(444, 96, 140, 29);
+		btnListParameters.setBounds(444, 96, 163, 29);
 		panel.add(btnListParameters);
 		
 		txtUsername = new JTextField();
@@ -210,10 +218,60 @@ public class MainWindow {
 		panel.add(lblPassword);
 		//DefaultListModel<String> pageModel = new DefaultListModel<String>();
 		
-		model.addColumn("Page URI"); 
-		model.addColumn("Is Login Form?");
-		model.addColumn("Is Login POST URI?");
+		JScrollPane scrollPane_1 = new JScrollPane();
+		scrollPane_1.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		scrollPane_1.setBounds(30, 283, 400, 80);
+		panel.add(scrollPane_1);
 		
+		// Append a row 
+		//model.addRow(new Object[]{"wp-login.php", true, false});
+		//model.addRow(new Object[]{"wp-login.php", false, true});
+		pageTable = new JTable();
+		scrollPane_1.setViewportView(pageTable);
+		
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		scrollPane.setBounds(30, 96, 400, 76);
+		panel.add(scrollPane);
+	
+		scrollPane.setViewportView(list);
+		
+		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		
+		JCheckBox chckbxRememberSettings = new JCheckBox("Remember Settings?");
+		chckbxRememberSettings.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				RELOAD_OLD_PREFS = chckbxRememberSettings.isSelected();
+			}
+		});
+		chckbxRememberSettings.setBounds(318, 199, 163, 41);
+		panel.add(chckbxRememberSettings);
+		RELOAD_OLD_PREFS = prefs.getBoolean(REMEMBER, false);
+		chckbxRememberSettings.setSelected(RELOAD_OLD_PREFS);
+		if(RELOAD_OLD_PREFS){
+			model = (DefaultTableModel) getModel();
+			if(model.getColumnCount() == 0){
+				model.addColumn("Page URI"); 
+				model.addColumn("Is Login Form?");
+				model.addColumn("Is Login POST URI?");	
+			}else{
+				Vector<String> objVector = new Vector<String>(3);
+				objVector.add("Page URI");
+				objVector.add("Is Login Form?");
+				objVector.add("Is Login POST URI?");
+				model.setColumnIdentifiers(objVector);
+				
+			}	
+		}else{
+			if(model.getColumnCount() == 0){
+				model.addColumn("Page URI"); 
+				model.addColumn("Is Login Form?");
+				model.addColumn("Is Login POST URI?");
+				model.setRowCount(0);
+			}
+		}
+		
+		pageTable.setModel(model);
 		
 		
 		pageName = new JTextField();
@@ -226,7 +284,7 @@ public class MainWindow {
 		btnAddPage.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (pageName.getText() != null){
-					model.addRow(new Object[]{pageName.getText(), chckbxLoginPage.isSelected(), chckbxPostLoginUri.isSelected()});
+					((DefaultTableModel) pageTable.getModel()).addRow(new Object[]{pageName.getText(), chckbxLoginPage.isSelected(), chckbxPostLoginUri.isSelected()});
 				}
 			}
 		});
@@ -240,24 +298,14 @@ public class MainWindow {
 		JButton btnRemove = new JButton("Remove");
 		btnRemove.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				model.removeRow(pageTable.getSelectedRow());
+				((DefaultTableModel) pageTable.getModel()).removeRow(pageTable.getSelectedRow());
 				
 			}
 		});
 		btnRemove.setBounds(454, 249, 93, 29);
 		panel.add(btnRemove);
 		
-		JScrollPane scrollPane_1 = new JScrollPane();
-		scrollPane_1.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		scrollPane_1.setBounds(30, 283, 400, 80);
-		panel.add(scrollPane_1);
 		
-		// Append a row 
-		//model.addRow(new Object[]{"wp-login.php", true, false});
-		//model.addRow(new Object[]{"wp-login.php", false, true});
-		pageTable = new JTable();
-		scrollPane_1.setViewportView(pageTable);
-		pageTable.setModel(model);
 		
 		
 		chckbxLoginPage.setBounds(321, 229, 128, 23);
@@ -276,7 +324,7 @@ public class MainWindow {
 				}
 			}
 		});
-		btnSetUserparameter.setBounds(444, 122, 140, 29);
+		btnSetUserparameter.setBounds(444, 122, 163, 29);
 		panel.add(btnSetUserparameter);
 		
 		JButton btnSetPassparameter = new JButton("Set PassParameter");
@@ -293,30 +341,12 @@ public class MainWindow {
 				}
 			}
 		});
-		btnSetPassparameter.setBounds(442, 148, 142, 29);
+		btnSetPassparameter.setBounds(442, 148, 165, 29);
 		panel.add(btnSetPassparameter);
 		
 		
 		chckbxPostLoginUri.setBounds(319, 250, 149, 23);
 		panel.add(chckbxPostLoginUri);
-		
-		JButton btnSetLoginParameter = new JButton("Set Login Parameter");
-		btnSetLoginParameter.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				//loginParam
-				if (!list.isSelectionEmpty()){
-					if(list.getSelectedIndices().length == 1){
-						//set userparam
-						loginParam = list.getSelectedValue();
-					}else{
-				        JOptionPane.showMessageDialog(null, "Please only select one value", "Error!", JOptionPane.ERROR_MESSAGE);
-
-					}
-				}
-			}
-		});
-		btnSetLoginParameter.setBounds(444, 183, 142, 29);
-		panel.add(btnSetLoginParameter);
 		
 		JMenuBar menuBar = new JMenuBar();
 		JMenu menu;
@@ -338,34 +368,17 @@ public class MainWindow {
 					if(txtPassword.getText() != null){prefs.put(PASSWORD,txtPassword.getText());}
 					if(usernameParam != null){prefs.put(USER_PARAM,usernameParam);}
 					if(passwordParam != null){prefs.put(PASS_PARAM,passwordParam);}
-					if(loginParam != null){prefs.put(LOGIN_PARAM,loginParam);}			
+					prefs.putBoolean(REMEMBER, RELOAD_OLD_PREFS);	
 					if(waitTime.getText() != null){prefs.put(WAIT_TIME,waitTime.getText());}					
 					if(numTries.getText() != null){prefs.put(NUM_TRIES,numTries.getText());}					
-					if(numThreads.getText() != null){prefs.put(NUM_THREADS,numThreads.getText());}					
-					//URGH.
-					//prefs.put(WORKLOAD,Helper.getTableData(pageTable));
-					
-
+					if(numThreads.getText() != null){prefs.put(NUM_THREADS,numThreads.getText());}
+					storeTableModel((DefaultTableModel) pageTable.getModel());
 				}
 			}
 		});
 		menu.add(saveSettings);
 		
-		importSettings = new JMenuItem("Import Settings");
-		importSettings.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				
-			}
-		});
-		menu.add(importSettings);
-
-		exportSettings = new JMenuItem("Export Settings");
-		exportSettings.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				
-			}
-		});
-		menu.add(exportSettings);
+		
 		
 		exitItem = new JMenuItem("Exit");
 		exitItem.addActionListener(new ActionListener() {
@@ -375,44 +388,73 @@ public class MainWindow {
 		});
 		menu.add(exitItem);
 		
-		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		scrollPane.setBounds(30, 96, 400, 76);
-		panel.add(scrollPane);
+		
+		if(RELOAD_OLD_PREFS){
+			urlField.setText(prefs.get(BASE_URL,""));
+			txtUsername.setText(prefs.get(USERNAME,""));
+			txtPassword.setText(prefs.get(PASSWORD,""));
+			usernameParam = prefs.get(USER_PARAM,"");
+			passwordParam = prefs.get(PASS_PARAM,"");
+			waitTime.setText(prefs.get(WAIT_TIME, "100"));
+			numTries.setText(prefs.get(NUM_TRIES, "2"));
+			numThreads.setText(prefs.get(NUM_THREADS, "2"));
+			
+			
+			}
 		
 		
-		
-		scrollPane.setViewportView(list);
-		
-				list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-				
-				JCheckBox chckbxRememberSettings = new JCheckBox("Remember Settings?");
-				chckbxRememberSettings.addChangeListener(new ChangeListener() {
-					public void stateChanged(ChangeEvent e) {
-						RELOAD_OLD_PREFS = chckbxRememberSettings.isSelected();
-					}
-				});
-				chckbxRememberSettings.setSelected(true);
-				chckbxRememberSettings.setBounds(318, 199, 163, 41);
-				panel.add(chckbxRememberSettings);
-				if(RELOAD_OLD_PREFS){
-					
-					urlField.setText(prefs.get(BASE_URL,""));
-					txtUsername.setText(prefs.get(USERNAME,""));
-					txtPassword.setText(prefs.get(PASSWORD,""));
-					usernameParam = prefs.get(USER_PARAM,"");
-					passwordParam = prefs.get(PASS_PARAM,"");
-					loginParam = prefs.get(LOGIN_PARAM,"");
-					waitTime.setText(prefs.get(WAIT_TIME, "100"));
-					numTries.setText(prefs.get(NUM_TRIES, "2"));
-					numThreads.setText(prefs.get(NUM_THREADS, "2"));	
-				}
-				
-				
+			Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+            	storeTableModel((DefaultTableModel) pageTable.getModel());
+            	prefs.putBoolean(REMEMBER, chckbxRememberSettings.isSelected());
+            }
+        });
 	}
 	
 	public JTable getJTable(){
 		return pageTable;
 	}
+	
+	
+	
+	
+	
+	private TableModel getModel() {
+        DefaultTableModel model = new DefaultTableModel(3,3);
+        ObjectInputStream ois = null;
+        try {
+            ois = new ObjectInputStream(new FileInputStream("pagenameTable"));
+            Vector data = (Vector) ois.readObject();
+            Vector<Object> cols = new Vector<>();
+            for(int i=1;i<=data.size();i++){
+                cols.add(i);
+            }
+            model.setDataVector(data, cols);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }  finally{
+            if(ois != null)
+                try {
+                    ois.close();
+                } catch (IOException e) {
+                }
+        }
+        return model;
+    }
+	public void storeTableModel(DefaultTableModel model) {
+        ObjectOutputStream oos = null;
+        try {
+            oos = new ObjectOutputStream(new FileOutputStream("pagenameTable"));
+            oos.writeObject(model.getDataVector());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }  finally{
+            if(oos != null)
+                try {
+                    oos.close();
+                } catch (IOException e) {
+                }
+        }
+    }
 }
 

@@ -8,14 +8,34 @@ import javax.swing.table.DefaultTableModel;
 
 public class ThreadService {
 	private final static int NUM_CSV_PARAMETERS = 3;
+	private static String url;
+	private static int tries;
+	private static int waitTime;
+	private static int threads;
+	private static String username;
+	private static String password;
+	private static String usernameParam;
+	private static String passwordParam;
 	
+	ThreadService(String url, int tries, 
+			int waitTime, int threads, String username, String password, 
+			String usernameParam, String passwordParam){
+	ThreadService.url = url;
+	ThreadService.tries = tries;
+	ThreadService.threads = threads;
+	ThreadService.username = username;
+	ThreadService.password = password;
+	ThreadService.usernameParam = usernameParam;
+	ThreadService.passwordParam = passwordParam;
+	
+	ThreadService.main();
+	
+	}
 	 DefaultTableModel model;
 	 public static int[] throughputArray;
 	 public static Object[][] csvArray;
 	 public static ArrayList<String> csvList;
-	 public static void main(String[] args, String url, int tries, 
-			int waitTime, int threads, String username, String password, 
-			String usernameParam, String passwordParam, String loginParam) throws Exception{
+	 public static void main(String ... args) {
 		//NEW MULTITHREAD START
 		long runTime = 0;
 		long endTime = 0;
@@ -31,7 +51,7 @@ public class ThreadService {
     	startTime = System.currentTimeMillis();
 		for (int i = 0; i < MYTHREADS; i++) {
 			Runnable worker = new MyThread(url, tries, waitTime, username, password, 
-					usernameParam, passwordParam, loginParam, i);			
+					usernameParam, passwordParam, i);			
 			executor.execute(worker);
 			
 		}

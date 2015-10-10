@@ -20,7 +20,7 @@ public class MyThread implements Runnable {
 	private final String password;
 	private final String usernameParam;
 	private final String passwordParam;
-	private final String loginParam;
+	
 	private final int threadNo;
 	
 	
@@ -29,7 +29,7 @@ public class MyThread implements Runnable {
 	DefaultTableModel model;
 	MyThread(String url, int tries, int wait, String username, 
 			String password, String usernameParam, 
-			String passwordParam, String loginParam, int threadNo) {
+			String passwordParam, int threadNo) {
 		
 		this.url = url;
 		this.tries = tries;
@@ -38,7 +38,7 @@ public class MyThread implements Runnable {
 		this.password = password;
 		this.usernameParam = usernameParam;
 		this.passwordParam = passwordParam;
-		this.loginParam = loginParam;
+		
 		this.threadNo = threadNo;
 	}
 
@@ -73,7 +73,7 @@ public class MyThread implements Runnable {
 			        	DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
 						Date date = new Date();
 						String dateVal = dateFormat.format(date);
-						Object[] tempArray = {dateVal, url, responseTime};
+						Object[] tempArray = {dateVal, tempUrl, responseTime};
 						String temp = StringUtils.join(tempArray, ',');
 						ThreadService.csvArray[threadNo][countHits] = temp;
 			        	//System.out.println(dateFormat.format(date) + "," + tempUrl + "," + responseTime)
@@ -87,7 +87,7 @@ public class MyThread implements Runnable {
 				        	Jsoup.connect(tempUrl)
 				        			.data(usernameParam, username)
 				        			.data(passwordParam, password)
-		        			        .data(loginParam, loginParam)
+		        			        //.data(loginParam, loginParam)
 	        			            .cookies(loginForm.cookies())
 				        			.userAgent("Mozilla")
 				        			.timeout(0)
@@ -98,7 +98,7 @@ public class MyThread implements Runnable {
 			        		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
 							Date date = new Date();
 							String dateVal = dateFormat.format(date);
-							Object[] tempArray = {dateVal, url, responseTime};
+							Object[] tempArray = {dateVal, tempUrl, responseTime};
 							String temp = StringUtils.join(tempArray, ',');
 							ThreadService.csvArray[threadNo][countHits] = temp;
 			        		//
@@ -118,7 +118,7 @@ public class MyThread implements Runnable {
 		        		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
 						Date date = new Date();
 						String dateVal = dateFormat.format(date);
-						Object[] tempArray = {dateVal, url, responseTime};
+						Object[] tempArray = {dateVal, tempUrl, responseTime};
 						String temp = StringUtils.join(tempArray, ',');
 						ThreadService.csvArray[threadNo][countHits] = temp;
 		        		//
@@ -133,12 +133,21 @@ public class MyThread implements Runnable {
 			} catch (Exception e) {
 				
 			//	System.err.println("Got an exception! ");
-				e.printStackTrace();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
+				Date date = new Date();
+				String dateVal = dateFormat.format(date);
+				Object[] tempArray = {dateVal, "timeout", "-1"};
+				String temp = StringUtils.join(tempArray, ',');
+				ThreadService.csvArray[threadNo][countHits] = temp;
+				//e.printStackTrace();
 			//	System.exit(1);
 			}
 			
 			try {
-			    Thread.sleep(wait);                
+				if(wait > 0){
+					Thread.sleep(wait);	
+				}
+			                    
 			} catch(InterruptedException ex) {
 			    Thread.currentThread().interrupt();
 			}	

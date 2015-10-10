@@ -86,9 +86,14 @@ public class Helper {
 		        
 				for(int i = 0; i < y; i++){
 					for(int j = 0; j < x; j++){
+						if(ThreadService.csvArray[i][j] != null){
+							String toFile = ThreadService.csvArray[i][j].toString() + "\n";
+							bufferWritter.write(toFile);	
+						}else{
+							String toFile = "null,timeout,-1" + "\n";
+							bufferWritter.write(toFile);
+						}
 						
-						String toFile = ThreadService.csvArray[i][j].toString() + "\n";
-						bufferWritter.write(toFile);
 						//System.out.println(toFile);
 					}
 				}
