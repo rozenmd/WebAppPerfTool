@@ -75,7 +75,7 @@ public class ThreadService {
 		//System.out.println("Throughput: " + throughput);
 		//Helper.printGrid(csvList, NUM_CSV_PARAMETERS, CsvLength);
 		if(sum>0){
-			Helper.printGrid(threadHits, MYTHREADS);	
+			Helper.printGrid(threadHits, MYTHREADS, MainWindow.filename);	
 		}
 		
 		//NEW MULTITHREAD END		

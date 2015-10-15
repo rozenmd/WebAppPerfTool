@@ -1,4 +1,5 @@
 import java.awt.EventQueue;
+import java.awt.FileDialog;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
@@ -8,6 +9,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
+import javax.swing.JFileChooser;
 
 import java.awt.BorderLayout;
 
@@ -43,6 +45,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -73,6 +76,9 @@ public class MainWindow {
 	final String NUM_TRIES = "num_tries";
 	final String NUM_THREADS = "num_threads";
 	final String REMEMBER = "remember_old_settings";
+	final String RESULTS_DIR = "results_dir";
+	public static String filename = "";
+	JFileChooser chooser;
 	/**
 	 * Launch the application.
 	 */
@@ -114,6 +120,7 @@ public class MainWindow {
 		JList<String> list = new JList<String>();
 		frmWebAppPerformance.getContentPane().add(panel, BorderLayout.CENTER);
 		panel.setLayout(null);
+		
 		
 		JTextField urlField = new JTextField();
 		urlField.setText("http://");
@@ -244,7 +251,7 @@ public class MainWindow {
 				RELOAD_OLD_PREFS = chckbxRememberSettings.isSelected();
 			}
 		});
-		chckbxRememberSettings.setBounds(318, 199, 163, 41);
+		chckbxRememberSettings.setBounds(306, 199, 163, 41);
 		panel.add(chckbxRememberSettings);
 		RELOAD_OLD_PREFS = prefs.getBoolean(REMEMBER, false);
 		chckbxRememberSettings.setSelected(RELOAD_OLD_PREFS);
@@ -288,7 +295,7 @@ public class MainWindow {
 				}
 			}
 		});
-		btnAddPage.setBounds(454, 228, 93, 29);
+		btnAddPage.setBounds(478, 228, 93, 29);
 		panel.add(btnAddPage);
 		
 		JLabel lblPageToTest = new JLabel("Page to test");
@@ -302,13 +309,13 @@ public class MainWindow {
 				
 			}
 		});
-		btnRemove.setBounds(454, 249, 93, 29);
+		btnRemove.setBounds(478, 251, 93, 29);
 		panel.add(btnRemove);
 		
 		
 		
 		
-		chckbxLoginPage.setBounds(321, 229, 128, 23);
+		chckbxLoginPage.setBounds(306, 229, 128, 23);
 		panel.add(chckbxLoginPage);
 		
 		JButton btnSetUserparameter = new JButton("Set UserParameter");
@@ -341,11 +348,11 @@ public class MainWindow {
 				}
 			}
 		});
-		btnSetPassparameter.setBounds(442, 148, 165, 29);
+		btnSetPassparameter.setBounds(444, 148, 165, 29);
 		panel.add(btnSetPassparameter);
 		
 		
-		chckbxPostLoginUri.setBounds(319, 250, 149, 23);
+		chckbxPostLoginUri.setBounds(306, 252, 149, 23);
 		panel.add(chckbxPostLoginUri);
 		
 		JMenuBar menuBar = new JMenuBar();
@@ -373,6 +380,7 @@ public class MainWindow {
 					if(numTries.getText() != null){prefs.put(NUM_TRIES,numTries.getText());}					
 					if(numThreads.getText() != null){prefs.put(NUM_THREADS,numThreads.getText());}
 					storeTableModel((DefaultTableModel) pageTable.getModel());
+					if(chooser != null){prefs.put(RESULTS_DIR, chooser.getSelectedFile().getPath());}
 				}
 			}
 		});
@@ -387,6 +395,41 @@ public class MainWindow {
 			}
 		});
 		menu.add(exitItem);
+		
+		JButton btnSetOutputFile = new JButton("Set Output File");
+		btnSetOutputFile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			   String choosertitle = "Choose a folder";
+				   
+				 chooser = new JFileChooser(); 
+				    //chooser.setCurrentDirectory(new java.io.File("."));
+				    chooser.setDialogTitle(choosertitle);
+				    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				    //
+				    // disable the "All files" option.
+				    //
+				    chooser.setAcceptAllFileFilterUsed(false);
+				    //    
+				    
+				    if (chooser.showOpenDialog(btnAddPage) == JFileChooser.APPROVE_OPTION) { 
+				    	filename = chooser.getCurrentDirectory().toString();
+				    	System.out.println("getCurrentDirectory(): " 
+				         +  filename);
+				    	DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm");
+						Date date = new Date();
+						String dateVal = dateFormat.format(date);
+				    	filename = chooser.getSelectedFile().toString() + "/wapt-tool-output-" + dateVal + ".csv";
+				      System.out.println("getSelectedFile() : " 
+				         +  chooser.getSelectedFile());
+				      }
+				    else {
+				      System.out.println("No Selection ");
+				      }
+
+			}
+		});
+		btnSetOutputFile.setBounds(444, 175, 165, 29);
+		panel.add(btnSetOutputFile);
 		
 		
 		if(RELOAD_OLD_PREFS){

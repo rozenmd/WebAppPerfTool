@@ -74,14 +74,20 @@ public class Helper {
 		/*
 		 * inspired by http://www.mkyong.com/java/how-to-append-content-to-file-in-java/
 		 */
-		public static void printGrid(int x, int y)
+		public static void printGrid(int x, int y, String filename)
 		{
 			try{
-				File file =new File("javaio-appendfile.csv");
+				File file;
+				if(filename != null){
+					 file =new File(filename);
+				}else{
+					 file =new File("wapt-output-file.csv");	
+				}
+				System.out.println(file.getAbsolutePath().toString());
 	    		if(!file.exists()){
 	    			file.createNewFile();
 	    		}
-	    		FileWriter fileWritter = new FileWriter(file.getName(),true);
+	    		FileWriter fileWritter = new FileWriter(filename,true);
 		        BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
 		        
 				for(int i = 0; i < y; i++){
