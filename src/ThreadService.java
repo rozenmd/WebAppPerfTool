@@ -63,23 +63,15 @@ public class ThreadService {
 		endTime = System.currentTimeMillis();
     	runTime = endTime - startTime;
         
-		//System.out.println("\nFinished all threads in " + runTime + "ms");
 		double sum = 0;
 		for (double i : throughputArray)
 		    sum += i;
 		System.out.println("Number of hits: " + sum);
-		//System.out.println("Number of CSV Rows: " + csvList.size());
-		//runTime = runTime/1000;
 		System.out.println("runTime: " + runTime);
 		double throughput = sum/runTime;
-		//System.out.println("Throughput: " + throughput);
-		//Helper.printGrid(csvList, NUM_CSV_PARAMETERS, CsvLength);
 		if(sum>0){
 			Helper.printGrid(threadHits, MYTHREADS, MainWindow.filename);	
 		}
-		
-		//NEW MULTITHREAD END		
-	
 	}
 }
 

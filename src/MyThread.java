@@ -7,7 +7,7 @@ import javax.swing.table.DefaultTableModel;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
+
 
 public class MyThread implements Runnable {
 	private final int colPagename = 0;
@@ -45,7 +45,6 @@ public class MyThread implements Runnable {
 	@Override
 	public void run(){
 		int countHits=0;
-		//System.out.println("Thread: " +threadNo+ " started");
 		for(int i = 0; i<tries; i++){
 			long responseTime = 0;
 			long endTime = 0;
@@ -69,14 +68,13 @@ public class MyThread implements Runnable {
 			        	loginForm = Jsoup.connect(tempUrl).timeout(0).method(Connection.Method.GET).execute();
 			        	endTime = System.currentTimeMillis();
 			        	responseTime = endTime - startTime;
-//			        	Helper.populateCsvArray(tempUrl, responseTime, countHits, this.threadNo);
 			        	DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
 						Date date = new Date();
 						String dateVal = dateFormat.format(date);
 						Object[] tempArray = {dateVal, tempUrl, responseTime};
 						String temp = StringUtils.join(tempArray, ',');
 						ThreadService.csvArray[threadNo][countHits] = temp;
-			        	//System.out.println(dateFormat.format(date) + "," + tempUrl + "," + responseTime)
+
 			        	gotCookies = true;
 			        	countHits++;
 			        }else if(tempPOSTLogin){
@@ -101,46 +99,34 @@ public class MyThread implements Runnable {
 							Object[] tempArray = {dateVal, tempUrl, responseTime};
 							String temp = StringUtils.join(tempArray, ',');
 							ThreadService.csvArray[threadNo][countHits] = temp;
-			        		//
 			        		countHits++;
-				        	//System.out.println(doc);
 			        	}
 			        }
 			        else{
 			        	responseTime = 0;
 			        	startTime = System.currentTimeMillis();
-			        	//Document doc = 
-			        			Jsoup.connect(tempUrl).timeout(0).ignoreHttpErrors(true).get();
-			        	//System.out.println(doc);
+	        			Jsoup.connect(tempUrl).timeout(0).ignoreHttpErrors(true).get();
 			        	endTime = System.currentTimeMillis();
 		        		responseTime = endTime - startTime;
-		        		//Helper.populateCsvArray(tempUrl, responseTime, countHits, this.threadNo);
 		        		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
 						Date date = new Date();
 						String dateVal = dateFormat.format(date);
 						Object[] tempArray = {dateVal, tempUrl, responseTime};
 						String temp = StringUtils.join(tempArray, ',');
 						ThreadService.csvArray[threadNo][countHits] = temp;
-		        		//
 		        		countHits++;
 			        }
 				}
-				//System.out.println("countHits: " + countHits);
 				ThreadService.throughputArray[threadNo] = countHits;
-				//System.out.println("throughPutArray: " + ThreadService.throughputArray[threadNo]);
-				//System.out.println("Thread finished");
 
 			} catch (Exception e) {
 				
-			//	System.err.println("Got an exception! ");
 				DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
 				Date date = new Date();
 				String dateVal = dateFormat.format(date);
 				Object[] tempArray = {dateVal, "timeout", "-1"};
 				String temp = StringUtils.join(tempArray, ',');
 				ThreadService.csvArray[threadNo][countHits] = temp;
-				//e.printStackTrace();
-			//	System.exit(1);
 			}
 			
 			try {
@@ -152,7 +138,5 @@ public class MyThread implements Runnable {
 			    Thread.currentThread().interrupt();
 			}	
 		}
-		//System.out.println("Thread: " +threadNo+ " ended");
 	}
-	
 }
