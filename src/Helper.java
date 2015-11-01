@@ -20,8 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 
 
 public class Helper {
-/*Takes username, password and concatenates into a parameter string
- * 
+/*Takes input webpage, scans for form elements, returns a list of parameters on the form
  */
 	  @SuppressWarnings("finally")
 	public List<String> getFormParams(String html) throws UnsupportedEncodingException{
@@ -32,19 +31,14 @@ public class Helper {
 			  Elements inputs = doc.getElementsByTag("input");			
 			  for(Element input : inputs){
 				  String key = input.attr("name");//this should be the name of the field
-				  //String value = input.attr("value");//this should be empty, always,
 				  //Need to figure out how to grab the login POST URI...
-				
 					  params.add(key);
-			}
-			return params;
-		  } catch (IOException e) {
-				e.printStackTrace();
-			} finally {
-				return params;
-			}
+			  }
+			  return params;
+		  	}catch (IOException e) { e.printStackTrace();} 
+		  finally { return params;}
 	  }
-	  	/* From:
+	  	/* Snippet From:
 		 * http://stackoverflow.com/questions/4765469/how-to-retrieve-jtable-data-as-an-array
 		 */
 		public static Object[][] getTableData (JTable table) {
@@ -57,7 +51,7 @@ public class Helper {
 		    return tableData;
 		}
 		/* 
-		 * 
+		 * Threadsafe (more or less) method to populate the CSV array using threadNo's
 		 */
 		public static void populateCsvArray(String url, long responseTime, int hitNo, int threadNo){
 			DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
@@ -66,13 +60,12 @@ public class Helper {
 			Object[] tempArray = {dateVal, url, responseTime};
 			String temp = StringUtils.join(tempArray, ',');
 			ThreadService.csvArray[threadNo][hitNo] = temp;
-			//System.out.println(temp);
-			//ThreadService.csvList.add(temp);
-        	//ThreadService.csvArray[j+i+threadNo] = tempArray;
-        	//System.out.println("RowCount: " + ThreadService.csvList.size());
+			
 		}
 		/*
-		 * inspired by http://www.mkyong.com/java/how-to-append-content-to-file-in-java/
+		 * adapted from http://www.mkyong.com/java/how-to-append-content-to-file-in-java/
+		 * NOTE this code appends!!
+		 * If you want a new file each time, change this!
 		 */
 		public static void printGrid(int x, int y, String filename)
 		{
@@ -99,8 +92,6 @@ public class Helper {
 							String toFile = "null,timeout,-1" + "\n";
 							bufferWritter.write(toFile);
 						}
-						
-						//System.out.println(toFile);
 					}
 				}
 				bufferWritter.close();

@@ -138,7 +138,9 @@ public class MainWindow {
 				int threads = Integer.parseInt(numThreads.getText());
 				String username = txtUsername.getText();
 				String password = txtPassword.getText();
+				//Populates a 2d array from the pageTable (JTable containing webpages)
 				work = Helper.getTableData(pageTable);
+				//Calls the thread creator with all req'd parameters
 				ThreadService runThread = new ThreadService(url, tries, wait, threads, username, password, usernameParam, passwordParam);
 				
 			}
@@ -184,6 +186,11 @@ public class MainWindow {
 		JButton btnListParameters = new JButton("List Parameters");
 		btnListParameters.addMouseListener(new MouseAdapter() {
 			@Override
+			/*
+			 * (non-Javadoc)
+			 * Populates the upper list with the available form elements on the target webpage
+			 * @see java.awt.event.MouseAdapter#mouseClicked(java.awt.event.MouseEvent)
+			 */
 			public void mouseClicked(MouseEvent e) {
 				String url = urlField.getText();
 				Helper test = new Helper();
@@ -223,16 +230,13 @@ public class MainWindow {
 		JLabel lblPassword = new JLabel("Password");
 		lblPassword.setBounds(231, 188, 71, 16);
 		panel.add(lblPassword);
-		//DefaultListModel<String> pageModel = new DefaultListModel<String>();
+		
 		
 		JScrollPane scrollPane_1 = new JScrollPane();
 		scrollPane_1.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		scrollPane_1.setBounds(30, 283, 400, 80);
 		panel.add(scrollPane_1);
 		
-		// Append a row 
-		//model.addRow(new Object[]{"wp-login.php", true, false});
-		//model.addRow(new Object[]{"wp-login.php", false, true});
 		pageTable = new JTable();
 		scrollPane_1.setViewportView(pageTable);
 		
@@ -247,6 +251,7 @@ public class MainWindow {
 		
 		JCheckBox chckbxRememberSettings = new JCheckBox("Remember Settings?");
 		chckbxRememberSettings.addChangeListener(new ChangeListener() {
+			//Listens for whether the Remember Settings checkbox is toggled
 			public void stateChanged(ChangeEvent e) {
 				RELOAD_OLD_PREFS = chckbxRememberSettings.isSelected();
 			}
@@ -257,6 +262,8 @@ public class MainWindow {
 		chckbxRememberSettings.setSelected(RELOAD_OLD_PREFS);
 		if(RELOAD_OLD_PREFS){
 			model = (DefaultTableModel) getModel();
+			//Messy code to ensure the model always has the right columns
+			//Sometimes doesn't work, and pages loaded are missing attributes
 			if(model.getColumnCount() == 0){
 				model.addColumn("Page URI"); 
 				model.addColumn("Is Login Form?");
@@ -290,6 +297,7 @@ public class MainWindow {
 		
 		btnAddPage.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				//adds the page in the textbox into the workload list
 				if (pageName.getText() != null){
 					((DefaultTableModel) pageTable.getModel()).addRow(new Object[]{pageName.getText(), chckbxLoginPage.isSelected(), chckbxPostLoginUri.isSelected()});
 				}
@@ -317,7 +325,7 @@ public class MainWindow {
 		
 		chckbxLoginPage.setBounds(306, 229, 128, 23);
 		panel.add(chckbxLoginPage);
-		
+		//User Parameter is the parameter name submitted with the login form
 		JButton btnSetUserparameter = new JButton("Set UserParameter");
 		btnSetUserparameter.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -395,14 +403,15 @@ public class MainWindow {
 			}
 		});
 		menu.add(exitItem);
-		
+		//Code to set the output folder
+		//Sometimes buggy if no output is set by the user
 		JButton btnSetOutputFile = new JButton("Set Output File");
 		btnSetOutputFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 			   String choosertitle = "Choose a folder";
 				   
 				 chooser = new JFileChooser(); 
-				    //chooser.setCurrentDirectory(new java.io.File("."));
+				    
 				    chooser.setDialogTitle(choosertitle);
 				    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				    //
@@ -445,7 +454,7 @@ public class MainWindow {
 			
 			}
 		
-		
+			//Saves the pageTable workload list when exit occurs
 			Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
             	storeTableModel((DefaultTableModel) pageTable.getModel());
@@ -461,7 +470,10 @@ public class MainWindow {
 	
 	
 	
-	
+	/*DataTable Saving snippet
+	 * Adapted from http://stackoverflow.com/questions/21873935/how-to-save-the-data-entered-in-jtable-so-that-it-remains-even-after-we-exit-the
+	 * 
+	 */
 	private TableModel getModel() {
         DefaultTableModel model = new DefaultTableModel(3,3);
         ObjectInputStream ois = null;
@@ -484,6 +496,10 @@ public class MainWindow {
         }
         return model;
     }
+	/*DataTable Saving snippet
+	 * Adapted from http://stackoverflow.com/questions/21873935/how-to-save-the-data-entered-in-jtable-so-that-it-remains-even-after-we-exit-the
+	 * 
+	 */
 	public void storeTableModel(DefaultTableModel model) {
         ObjectOutputStream oos = null;
         try {

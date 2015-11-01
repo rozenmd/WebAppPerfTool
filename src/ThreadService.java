@@ -36,13 +36,16 @@ public class ThreadService {
 	 public static Object[][] csvArray;
 	 public static ArrayList<String> csvList;
 	 public static void main(String ... args) {
-		//NEW MULTITHREAD START
+		
 		long runTime = 0;
 		long endTime = 0;
 		long startTime = 0;
 		final int MYTHREADS = threads;
+		//Figure out how long our output should be
 		final int CsvLength = MYTHREADS*tries*MainWindow.work.length;
+		//Figure out how many requests we should be sending
 		final int threadHits = tries*MainWindow.work.length;
+		
 		throughputArray = new int[MYTHREADS];
 		csvArray = new Object[MYTHREADS][threadHits];//array of array of arrays.
 		csvList = new ArrayList<String>();
@@ -64,11 +67,14 @@ public class ThreadService {
     	runTime = endTime - startTime;
         
 		double sum = 0;
+		//this was going to be used, but in the end
+		//it was easier to just output raw data and use Excel
 		for (double i : throughputArray)
 		    sum += i;
-		System.out.println("Number of hits: " + sum);
+		System.out.println("Number of requests sent: " + sum);
 		System.out.println("runTime: " + runTime);
 		double throughput = sum/runTime;
+		//throughput is not used due to occasional divide by zero errors
 		if(sum>0){
 			Helper.printGrid(threadHits, MYTHREADS, MainWindow.filename);	
 		}

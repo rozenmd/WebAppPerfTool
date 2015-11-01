@@ -22,11 +22,8 @@ public class MyThread implements Runnable {
 	private final String passwordParam;
 	
 	private final int threadNo;
-	
-	
-
-
 	DefaultTableModel model;
+	//Creates a thread using all the params
 	MyThread(String url, int tries, int wait, String username, 
 			String password, String usernameParam, 
 			String passwordParam, int threadNo) {
@@ -38,11 +35,12 @@ public class MyThread implements Runnable {
 		this.password = password;
 		this.usernameParam = usernameParam;
 		this.passwordParam = passwordParam;
-		
 		this.threadNo = threadNo;
 	}
 
 	@Override
+	//The actual thread code
+	
 	public void run(){
 		int countHits=0;
 		for(int i = 0; i<tries; i++){
@@ -50,7 +48,9 @@ public class MyThread implements Runnable {
 			long endTime = 0;
 			long startTime = 0;
 			boolean gotCookies = false;
+			//For cookie storage
 			Connection.Response loginForm = null;
+			
 			try{				
 				for(int j = 0; j < MainWindow.work.length; j++){
 					String tempPage;
@@ -61,10 +61,12 @@ public class MyThread implements Runnable {
 					tempUrl += tempPage;
 					tempIsLogin = (boolean) MainWindow.work[j][colIsLogin];
 					tempPOSTLogin = (boolean) MainWindow.work[j][colPOSTLogin];
+					//Check if we're scraping cookies from the page
 			        if(tempIsLogin){
 			        	//First connect to the login form
 			        	responseTime = 0;
 			        	startTime = System.currentTimeMillis();
+			        	//Scrape cookies, save to loginForm var
 			        	loginForm = Jsoup.connect(tempUrl).timeout(0).method(Connection.Method.GET).execute();
 			        	endTime = System.currentTimeMillis();
 			        	responseTime = endTime - startTime;
@@ -78,14 +80,17 @@ public class MyThread implements Runnable {
 			        	gotCookies = true;
 			        	countHits++;
 			        }else if(tempPOSTLogin){
-			        	if(gotCookies){
+			        	if(gotCookies){//We have the cookies, now we can login
 			        		responseTime = 0;
 				        	startTime = System.currentTimeMillis();
+				        	//line below is kept to verify login succeeds 
+				        	//Once doc is retrieved, print it to console and check webpage for "Welcome to <SOME APP>, $USER" 
+				        	//Or something similar
 			        		//Document doc = 
 				        	Jsoup.connect(tempUrl)
 				        			.data(usernameParam, username)
 				        			.data(passwordParam, password)
-		        			        //.data(loginParam, loginParam)
+		        			        //.data(loginParam, loginParam) //a "login param" is sometimes needed, depends on web app implementation
 	        			            .cookies(loginForm.cookies())
 				        			.userAgent("Mozilla")
 				        			.timeout(0)
@@ -124,13 +129,14 @@ public class MyThread implements Runnable {
 				DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
 				Date date = new Date();
 				String dateVal = dateFormat.format(date);
-				Object[] tempArray = {dateVal, "timeout", "-1"};
+				Object[] tempArray = {dateVal, "timeout", "-1"}; //this was to stop exceptions in writing the CSV
+				//there are sometimes timeouts that can't be debugged, so we had to set ping to -1
 				String temp = StringUtils.join(tempArray, ',');
 				ThreadService.csvArray[threadNo][countHits] = temp;
 			}
 			
 			try {
-				if(wait > 0){
+				if(wait > 0){//In case the user wants to test with user "thinking time", wait time is provided
 					Thread.sleep(wait);	
 				}
 			                    
